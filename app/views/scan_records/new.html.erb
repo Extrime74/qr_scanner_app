@@ -1,0 +1,31 @@
+<% content_for :title, "New scan record" %>
+<h1>New scan record</h1>
+<div id="reader" style="width: 300px"></div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const html5QrCode = new Html5Qrcode("reader");
+    const config = { fps: 10, qrbox: 250 };
+
+    html5QrCode.start(
+      { facingMode: "environment" },
+      config,
+      qrCodeMessage => {
+        // Автозаполнение формы
+        document.querySelector("#scan_record_qr_code").value = qrCodeMessage;
+        html5QrCode.stop();
+      },
+      errorMessage => {
+        // console.log(errorMessage);
+      }
+    );
+  });
+</script>
+
+
+<%= render "form", scan_record: @scan_record %>
+
+<br>
+
+<div>
+  <%= link_to "Back to scan records", scan_records_path %>
+</div>

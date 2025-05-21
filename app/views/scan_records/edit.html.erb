@@ -1,0 +1,12 @@
+<% content_for :title, "Editing scan record" %>
+
+<h1>Editing scan record</h1>
+
+<%= render "form", scan_record: @scan_record %>
+
+<br>
+
+<div>
+  <%= link_to "Show this scan record", @scan_record %> |
+  <%= link_to "Back to scan records", scan_records_path %>
+</div>

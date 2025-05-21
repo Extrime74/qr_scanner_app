@@ -1,0 +1,52 @@
+<%= form_with(model: scan_record) do |form| %>
+  <% if scan_record.errors.any? %>
+    <div style="color: red">
+      <h2><%= pluralize(scan_record.errors.count, "error") %> prohibited this scan_record from being saved:</h2>
+
+      <ul>
+        <% scan_record.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :qr_code, style: "display: block" %>
+    <%= form.text_field :qr_code %>
+  </div>
+
+  <div>
+    <%= form.label :consignee, style: "display: block" %>
+    <%= form.text_field :consignee %>
+  </div>
+
+  <div>
+    <%= form.label :apzgr_number, style: "display: block" %>
+    <%= form.text_field :apzgr_number %>
+  </div>
+
+  <div>
+    <%= form.label :box_number, style: "display: block" %>
+    <%= form.text_field :box_number %>
+  </div>
+
+  <div>
+    <%= form.label :article, style: "display: block" %>
+    <%= form.text_field :article %>
+  </div>
+
+  <div>
+    <%= form.label :size, style: "display: block" %>
+    <%= form.text_field :size %>
+  </div>
+
+  <div>
+    <%= form.label :quantity, style: "display: block" %>
+    <%= form.number_field :quantity %>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>

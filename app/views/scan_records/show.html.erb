@@ -1,0 +1,10 @@
+<p style="color: green"><%= notice %></p>
+
+<%= render @scan_record %>
+
+<div>
+  <%= link_to "Edit this scan record", edit_scan_record_path(@scan_record) %> |
+  <%= link_to "Back to scan records", scan_records_path %>
+
+  <%= button_to "Destroy this scan record", @scan_record, method: :delete %>
+</div>

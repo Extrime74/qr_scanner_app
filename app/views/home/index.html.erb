@@ -1,0 +1,41 @@
+<h1>Сканирование QR-кода</h1>
+<%= link_to "Список записей", scan_records_path, class: "btn btn-primary", style: "margin-bottom: 15px; display: inline-block;" %>
+<div id="reader" style="width: 300px;"></div>
+<div id="notification" style="margin-top: 10px; font-weight: bold;"></div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+  function showNotification(message, isError = false) {
+    const notif = document.getElementById("notification");
+    notif.textContent = message;
+    notif.style.color = isError ? "red" : "green";
+    setTimeout(() => { notif.textContent = ""; }, 4000); // Убрать через 4 секунды
+  }
+
+  function onScanSuccess(decodedText, decodedResult) {
+    fetch("/scan_records", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
+      },
+      body: JSON.stringify({ qr_data: decodedText })
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(({ status, body }) => {
+      if (status === 201) {
+        showNotification(body.message);
+      } else if (status === 409) {
+        showNotification(body.message, true);
+      } else {
+        showNotification("Ошибка: " + (body.message || body.errors), true);
+      }
+    })
+    .catch(() => {
+      showNotification("Ошибка сети", true);
+    });
+  }
+
+  const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 1, qrbox: 250 });
+  html5QrcodeScanner.render(onScanSuccess);
+</script>

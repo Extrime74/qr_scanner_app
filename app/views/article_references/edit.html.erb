@@ -1,0 +1,12 @@
+<% content_for :title, "Editing article reference" %>
+
+<h1>Editing article reference</h1>
+
+<%= render "form", article_reference: @article_reference %>
+
+<br>
+
+<div>
+  <%= link_to "Show this article reference", @article_reference %> |
+  <%= link_to "Back to article references", article_references_path %>
+</div>

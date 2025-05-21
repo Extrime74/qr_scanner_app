@@ -1,0 +1,16 @@
+<p style="color: green"><%= notice %></p>
+
+<% content_for :title, "Article references" %>
+
+<h1>Article references</h1>
+
+<div id="article_references">
+  <% @article_references.each do |article_reference| %>
+    <%= render article_reference %>
+    <p>
+      <%= link_to "Show this article reference", article_reference %>
+    </p>
+  <% end %>
+</div>
+
+<%= link_to "New article reference", new_article_reference_path %>
