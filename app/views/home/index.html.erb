@@ -3,39 +3,143 @@
 <div id="reader" style="width: 300px;"></div>
 <div id="notification" style="margin-top: 10px; font-weight: bold;"></div>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
 <script>
-  function showNotification(message, isError = false) {
-    const notif = document.getElementById("notification");
-    notif.textContent = message;
-    notif.style.color = isError ? "red" : "green";
-    setTimeout(() => { notif.textContent = ""; }, 4000); // Убрать через 4 секунды
-  }
+  // Глобальный объект для управления сканером
+  window.qrScanner = {
+    instance: null,
+    isInitialized: false,
+    isDestroying: false, // Флаг для отслеживания процесса уничтожения
 
-  function onScanSuccess(decodedText, decodedResult) {
-    fetch("/scan_records", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
-      },
-      body: JSON.stringify({ qr_data: decodedText })
-    })
-    .then(response => response.json().then(data => ({ status: response.status, body: data })))
-    .then(({ status, body }) => {
-      if (status === 201) {
-        showNotification(body.message);
-      } else if (status === 409) {
-        showNotification(body.message, true);
-      } else {
-        showNotification("Ошибка: " + (body.message || body.errors), true);
+    init: function() {
+      // Проверяем, что элемент существует и библиотека загружена
+      if (!document.getElementById('reader') || !window.Html5QrcodeScanner) {
+        return false;
       }
-    })
-    .catch(() => {
-      showNotification("Ошибка сети", true);
-    });
+
+      // Если уже инициализирован или в процессе уничтожения
+      if (this.isInitialized || this.isDestroying) {
+        return true;
+      }
+
+      try {
+        this.instance = new Html5QrcodeScanner(
+          'reader',
+          {
+            fps: 1,
+            qrbox: 250,
+            rememberLastUsedCamera: true,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+          },
+          false
+        );
+
+        this.instance.render((decodedText) => {
+          this.onScanSuccess(decodedText);
+        });
+
+        this.isInitialized = true;
+        return true;
+      } catch (e) {
+        console.error('Scanner init error:', e);
+        return false;
+      }
+    },
+
+    onScanSuccess: function(decodedText) {
+      fetch("/scan_records", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
+        },
+        body: JSON.stringify({ qr_data: decodedText })
+      })
+      .then(response => response.json().then(data => ({ status: response.status, body: data })))
+      .then(({ status, body }) => {
+        if (status === 201) {
+          this.showNotification(body.message);
+        } else if (status === 409) {
+          this.showNotification(body.message, true);
+        } else {
+          this.showNotification("Ошибка: " + (body.message || body.errors), true);
+        }
+      })
+      .catch(() => {
+        this.showNotification("Ошибка сети", true);
+      });
+    },
+
+    showNotification: function(message, isError) {
+      const notif = document.getElementById('notification');
+      if (notif) {
+        notif.textContent = message;
+        notif.style.color = isError ? 'red' : 'green';
+        setTimeout(() => { notif.textContent = ''; }, 4000);
+      }
+    },
+
+    destroy: function() {
+      if (!this.instance || !this.isInitialized || this.isDestroying) {
+        return Promise.resolve();
+      }
+
+      this.isDestroying = true;
+
+      return new Promise((resolve) => {
+        // Добавляем задержку для безопасного завершения
+        setTimeout(async () => {
+          try {
+            await this.instance.clear();
+          } catch (e) {
+            console.log('Scanner cleanup completed with warnings:', e);
+          } finally {
+            this.instance = null;
+            this.isInitialized = false;
+            this.isDestroying = false;
+            resolve();
+          }
+        }, 300); // Задержка в 300мс для завершения переходных процессов
+      });
+    }
+  };
+
+  // Инициализация сканера
+  function initializeScanner() {
+    if (!document.getElementById('reader')) return;
+
+    if (!qrScanner.init()) {
+      const checkInterval = setInterval(() => {
+        if (window.Html5QrcodeScanner) {
+          clearInterval(checkInterval);
+          qrScanner.init();
+        }
+      }, 100);
+    }
   }
 
-  const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 1, qrbox: 250 });
-  html5QrcodeScanner.render(onScanSuccess);
+  // Обработчики событий
+  document.addEventListener('DOMContentLoaded', initializeScanner);
+  document.addEventListener('turbo:load', initializeScanner);
+
+  // Улучшенный обработчик перехода между страницами
+  document.addEventListener('turbo:before-visit', async (event) => {
+    // Пропускаем переход, если это ссылка на ту же страницу
+    if (event.detail.url === window.location.href) return;
+
+    await qrScanner.destroy();
+  });
+
+  // При возврате назад - перезагружаем страницу только если сканер был активен
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted && document.getElementById('reader') && qrScanner.isInitialized) {
+      window.location.reload();
+    }
+  });
+
+  // Дополнительная защита от дублирования
+  document.addEventListener('turbo:render', () => {
+    if (document.getElementById('reader') && qrScanner.instance && !qrScanner.isInitialized) {
+      initializeScanner();
+    }
+  });
 </script>
