@@ -11,22 +11,38 @@
       <th>Артикул</th>
       <th>Размер</th>
       <th>Количество</th>
+      <th>Действия</th>
     </tr>
   </thead>
   <tbody>
     <% @scan_records.each do |record| %>
-      <tr>
-        <td><%= record.id %></td>
-        <td><%= record.consignee %></td>
-        <td><%= record.apzgr_number %></td>
-        <td><%= record.box_number %></td>
-        <td><%= record.article %></td>
-        <td><%= record.size %></td>
-        <td><%= record.quantity %></td>
-        <td>
-          <%= button_to "Удалить", scan_record_path(record), method: :delete, data: { confirm: "Вы уверены?" } %>
-        </td>
-      </tr>
+      <% parsed = record.parsed_qr_data %>
+      <% sizes = parsed[:sizes_with_quantities] || [] %>
+      <% if sizes.any? %>
+        <% sizes.each_with_index do |entry, index| %>
+          <tr>
+            <% if index == 0 %>
+              <td rowspan="<%= sizes.size %>"><%= record.id %></td>
+              <td rowspan="<%= sizes.size %>"><%= parsed[:consignee] %></td>
+              <td rowspan="<%= sizes.size %>"><%= parsed[:apzgr] %></td>
+              <td rowspan="<%= sizes.size %>"><%= parsed[:box_number] %></td>
+              <td rowspan="<%= sizes.size %>"><%= parsed[:article] %></td>
+            <% end %>
+            <td><%= entry[:size] %></td>
+            <td><%= entry[:quantity] %></td>
+            <% if index == 0 %>
+              <td rowspan="<%= sizes.size %>">
+                <%= button_to "Удалить", scan_record_path(record), method: :delete, data: { confirm: "Вы уверены?" } %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      <% else %>
+        <tr>
+          <td colspan="8">Ошибка при парсинге QR-кода: <%= record.qr_code_text %></td>
+        </tr>
+      <% end %>
     <% end %>
+
   </tbody>
 </table>

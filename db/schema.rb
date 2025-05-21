@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_20_150354) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_21_124926) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -22,14 +22,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_20_150354) do
   end
 
   create_table "scan_records", force: :cascade do |t|
-    t.string "qr_code"
-    t.string "consignee"
-    t.string "apzgr_number"
-    t.string "box_number"
-    t.string "article"
-    t.string "size"
-    t.integer "quantity"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "qr_code_id"
+    t.text "qr_code_text"
   end
 end
