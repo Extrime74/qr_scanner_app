@@ -17,6 +17,7 @@ gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
+
 # Для экспорта в Excel
 gem "caxlsx_rails"
 
@@ -25,8 +26,8 @@ gem "caxlsx_rails"
 gem "devise"
 
 # Для отображения адаптивной верстки (через Bootstrap)
-gem "bootstrap", "~> 5.3"
-gem "jquery-rails"
+# gem "bootstrap", "~> 5.3"
+# gem "jquery-rails"
 
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
@@ -75,3 +76,5 @@ group :test do
 end
 
 gem "cssbundling-rails", "~> 1.4"
+
+gem "tailwindcss-rails", "~> 4.2"
