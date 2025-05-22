@@ -3,77 +3,132 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">Список записей</h1>
+<%
+  # Вычисляем суффикс для заголовка на сервере
+  title_suffix = ""
+  if params[:date_range].present?
+    dates = params[:date_range].split(" to ")
+    if dates.size == 2
+      begin_date = Date.parse(dates[0]) rescue nil
+      end_date = Date.parse(dates[1]) rescue nil
 
-  <%= link_to "Назад", root_path, class: "inline-block bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300 mb-6" %>
+      if begin_date && end_date
+        if begin_date == end_date
+          if begin_date == Date.today
+            title_suffix = " за Сегодня"
+          elsif begin_date == Date.yesterday
+            title_suffix = " за Вчера"
+          else
+            title_suffix = " за #{I18n.l(begin_date, format: :long)}"
+          end
+        else
+          title_suffix = " за #{I18n.l(begin_date, format: :long)} — #{I18n.l(end_date, format: :long)}"
+        end
+      end
+    end
+  end
+%>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800" id="records-title">Список записей<%= title_suffix %></h1>
+    <%= link_to "Назад", root_path, class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm hover:shadow-md" %>
+  </div>
 
   <%= form_with url: scan_records_path, method: :get, local: true, id: "filter-form" do |f| %>
-    <div class="flex space-x-4 mb-4 items-center">
-      <button type="button" id="btn-today" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300">
-        Сегодня
-      </button>
-      <button type="button" id="btn-yesterday" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300">
-        Вчера
-      </button>
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
+      <div class="flex flex-wrap gap-3 items-center">
+        <button type="button" id="btn-today" class="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-4 rounded-lg transition duration-200 border border-blue-100">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Сегодня
+        </button>
+        <button type="button" id="btn-yesterday" class="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-600 font-medium py-2 px-4 rounded-lg transition duration-200 border border-gray-100">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Вчера
+        </button>
 
-      <input
-        type="text"
-        id="date-range"
-        name="date_range"
-        placeholder="Выберите дату"
-        autocomplete="off"
-        class="border rounded px-3 py-2 cursor-pointer max-w-[200px]"
-      />
+        <div class="relative flex-grow max-w-xs">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            id="date-range"
+            name="date_range"
+            placeholder="Выберите диапазон дат"
+            autocomplete="off"
+            class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition duration-200"
+            value="<%= params[:date_range] %>"
+          />
+        </div>
+      </div>
     </div>
   <% end %>
 
   <!-- Таблица -->
-  <div class="bg-white shadow-lg rounded-2xl border border-gray-200 overflow-hidden">
+  <div class="bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden">
     <% if @scan_records.empty? %>
-      <div class="p-4 text-center text-gray-600">
-        Нет записей для отображения
+      <div class="p-8 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-700">Нет записей для отображения</h3>
+        <p class="mt-1 text-sm text-gray-500">Попробуйте изменить параметры фильтрации</p>
       </div>
     <% else %>
       <div class="overflow-x-auto">
-        <table class="w-full text-sm text-gray-800">
+        <table class="w-full text-sm">
           <thead>
-            <tr class="bg-gray-100 text-left">
-              <th class="px-3 py-2 w-[7%] break-words">ID</th>
-              <th class="px-3 py-2 w-[15%] break-words">Грузополучатель</th>
-              <th class="px-3 py-2 w-[15%] break-words">АПЗГР</th>
-              <th class="px-3 py-2 w-[10%] break-words">Короб</th>
-              <th class="px-3 py-2 w-[10%] break-words">Артикул</th>
-              <th class="px-3 py-2 w-[15%] break-words">Размер</th>
-              <th class="px-3 py-2 w-[10%] text-center break-words">Количество</th>
-              <th class="px-3 py-2 w-[10%] break-words"></th>
+            <tr class="bg-gray-50 text-gray-600 text-left text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
+              <th class="px-6 py-3">ID</th>
+              <th class="px-6 py-3">Грузополучатель</th>
+              <th class="px-6 py-3">АПЗГР</th>
+              <th class="px-6 py-3">Короб</th>
+              <th class="px-6 py-3">Артикул</th>
+              <th class="px-6 py-3">Размер</th>
+              <th class="px-6 py-3 text-center">Количество</th>
+              <th class="px-6 py-3 text-right">Действия</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-gray-100">
             <% @scan_records.each do |record| %>
               <% parsed = record.parsed_qr_data %>
               <% sizes = parsed[:sizes_with_quantities] || [] %>
 
               <% if sizes.any? %>
                 <% sizes.each_with_index do |entry, index| %>
-                  <tr class="<%= index.even? ? 'bg-gray-50' : '' %> border-t">
+                  <tr class="<%= index.even? ? 'bg-gray-50' : 'bg-white' %> hover:bg-gray-50 transition-colors">
                     <% if index == 0 %>
-                      <td class="px-3 py-2 align-top break-words text-center" rowspan="<%= sizes.size %>"><%= record.qr_code_id %></td>
-                      <td class="px-3 py-2 align-top text-center align-middle whitespace-pre-line" rowspan="<%= sizes.size %>"><%= parsed[:consignee] %></td>
-                      <td class="px-3 py-2 align-top break-words" rowspan="<%= sizes.size %>"><%= parsed[:apzgr] %></td>
-                      <td class="px-3 py-2 align-top break-words" rowspan="<%= sizes.size %>"><%= parsed[:box_number] %></td>
-                      <td class="px-3 py-2 align-top break-words" rowspan="<%= sizes.size %>"><%= parsed[:article] %></td>
+                      <td class="px-6 py-4 align-top text-gray-700 font-medium text-center" rowspan="<%= sizes.size %>">
+                        <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-50 text-blue-600">
+                          <%= record.qr_code_id %>
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 align-top text-gray-800 whitespace-pre-line" rowspan="<%= sizes.size %>"><%= parsed[:consignee] %></td>
+                      <td class="px-6 py-4 align-top text-gray-800 font-medium" rowspan="<%= sizes.size %>"><%= parsed[:apzgr] %></td>
+                      <td class="px-6 py-4 align-top text-gray-800" rowspan="<%= sizes.size %>">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <%= parsed[:box_number] %>
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 align-top text-gray-800 font-medium" rowspan="<%= sizes.size %>"><%= parsed[:article] %></td>
                     <% end %>
-                    <td class="px-3 py-2 break-words align-top"><%= entry[:size] %></td>
-                    <td class="px-3 py-2 break-words text-center align-top"><%= entry[:quantity] %></td>
+                    <td class="px-6 py-4 text-gray-700"><%= entry[:size] %></td>
+                    <td class="px-6 py-4 text-gray-700 text-center font-medium"><%= entry[:quantity] %></td>
                     <% if index == 0 %>
-                      <td class="px-3 py-2 align-middle text-center" rowspan="<%= sizes.size %>">
+                      <td class="px-6 py-4 text-right" rowspan="<%= sizes.size %>">
                         <button type="button"
                           data-record-id="<%= record.id %>"
-                          class="open-delete-modal inline-flex items-center justify-center bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition duration-300 hover:shadow-xl hover:scale-[1.1] transform"
+                          class="open-delete-modal inline-flex items-center justify-center h-9 w-9 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition duration-200"
                           title="Удалить запись">
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12m-1 0v10a2 2 0 01-2 2H9a2 2 0 01-2-2V7m3 0V5a1 1 0 011-1h2a1 1 0 011 1v2" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
                         <%= form_with url: scan_record_path(record), method: :delete, html: { id: "delete-form-#{record.id}", style: "display:none" } do %>
@@ -84,8 +139,17 @@
                 <% end %>
               <% else %>
                 <tr>
-                  <td colspan="8" class="text-red-600 font-medium p-4">
-                    Ошибка при парсинге QR-кода: <code class="bg-gray-100 px-2 py-1 rounded text-xs inline-block"><%= record.qr_code_text %></code>
+                  <td colspan="8" class="px-6 py-4">
+                    <div class="flex items-center gap-3 bg-red-50 rounded-lg p-3">
+                      <div class="flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                      </div>
+                      <div class="text-sm text-red-600">
+                        Ошибка при парсинге QR-кода: <span class="font-mono bg-red-100 px-2 py-1 rounded"><%= record.qr_code_text %></span>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               <% end %>
@@ -98,13 +162,25 @@
 </div>
 
 <!-- Модальное окно подтверждения -->
-<div id="modal-overlay" class="fixed inset-0 bg-black opacity-0 pointer-events-none transition-opacity duration-120 ease-out flex items-center justify-center z-50">
-  <div id="modal-window" class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-center space-y-4 transform scale-95 opacity-0 transition-all duration-120 ease-out">
-    <h2 class="text-lg font-semibold text-gray-800">Удалить запись?</h2>
-    <p class="text-sm text-gray-600">Вы уверены, что хотите удалить эту запись? Это действие необратимо.</p>
-    <div class="flex justify-center gap-4 pt-2">
-      <button id="modal-cancel" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-xl transition">Отмена</button>
-      <button id="modal-confirm" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition">Удалить</button>
+<div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+  <div id="modal-window" class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all duration-200 scale-95 opacity-0">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="flex-shrink-0 p-2 rounded-full bg-red-100 text-red-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <h2 class="text-xl font-semibold text-gray-800">Подтвердите удаление</h2>
+    </div>
+    <p class="text-gray-600 mb-6 pl-11">Вы уверены, что хотите удалить эту запись? Это действие нельзя отменить.</p>
+    <div class="flex justify-end gap-3">
+      <button id="modal-cancel" class="px-4 py-2 text-gray-700 font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition">Отмена</button>
+      <button id="modal-confirm" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        Удалить
+      </button>
     </div>
   </div>
 </div>
@@ -120,36 +196,83 @@
     const btnYesterday = document.getElementById("btn-yesterday");
     const dateRangeInput = document.getElementById("date-range");
     const form = document.getElementById("filter-form");
+    const recordsTitle = document.getElementById("records-title");
 
     if (!modal || !modalWindow || !confirmBtn || !cancelBtn) return;
 
     let activeRecordId = null;
 
+    // Функция для форматирования даты в YYYY-MM-DD
     function formatDate(date) {
       return date.toISOString().slice(0, 10);
     }
 
+    // Функция для форматирования даты в локальном формате (для отображения)
+    function formatDateLocal(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // Функция для обновления заголовка
+    function updateTitle(dateRange) {
+      if (!dateRange) {
+        recordsTitle.textContent = 'Список записей';
+        return;
+      }
+
+      const [startDateStr, endDateStr] = dateRange.split(' to ');
+      const startDate = new Date(startDateStr);
+      const endDate = new Date(endDateStr);
+
+      // Форматирование даты по-русски
+      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      const startFormatted = startDate.toLocaleDateString('ru-RU', options);
+      const endFormatted = endDate.toLocaleDateString('ru-RU', options);
+
+      // Сегодня
+      const today = new Date();
+      const todayStr = formatDate(today);
+
+      // Вчера
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = formatDate(yesterday);
+
+      if (dateRange === `${todayStr} to ${todayStr}`) {
+        recordsTitle.textContent = 'Список записей за Сегодня';
+      } else if (dateRange === `${yesterdayStr} to ${yesterdayStr}`) {
+        recordsTitle.textContent = 'Список записей за Вчера';
+      } else if (startDateStr === endDateStr) {
+        recordsTitle.textContent = `Список записей за ${startFormatted}`;
+      } else {
+        recordsTitle.textContent = `Список записей за ${startFormatted} — ${endFormatted}`;
+      }
+    }
+
+    // Инициализация при загрузке
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialDateRange = urlParams.get('date_range');
+    updateTitle(initialDateRange);
+
+    // Обработчики кнопок
     btnToday?.addEventListener("click", () => {
       const today = new Date();
-      // Устанавливаем одинаковую дату начала и конца, т.к. диапазон
-      dateRangeInput.value = formatDate(today) + " to " + formatDate(today);
+      const todayStr = formatDate(today);
+      dateRangeInput.value = `${todayStr} to ${todayStr}`;
+      updateTitle(dateRangeInput.value);
       form.submit();
     });
 
     btnYesterday?.addEventListener("click", () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      dateRangeInput.value = formatDate(yesterday) + " to " + formatDate(yesterday);
+      const yesterdayStr = formatDate(yesterday);
+      dateRangeInput.value = `${yesterdayStr} to ${yesterdayStr}`;
+      updateTitle(dateRangeInput.value);
       form.submit();
     });
-
-    function formatDateLocal(date) {
-      const yyyy = date.getFullYear();
-      const mm = String(date.getMonth() + 1).padStart(2, '0'); // месяцы от 0
-      const dd = String(date.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
-    }
-
 
     // Инициализация flatpickr с выбором диапазона дат
     flatpickr(dateRangeInput, {
@@ -157,20 +280,22 @@
       dateFormat: "Y-m-d",
       locale: "ru",
       allowInput: true,
+      defaultDate: initialDateRange ? initialDateRange.split(' to ') : null,
       onClose: function(selectedDates) {
         if (selectedDates.length > 0) {
           const start = formatDateLocal(selectedDates[0]);
           const end = selectedDates[1] ? formatDateLocal(selectedDates[1]) : start;
           dateRangeInput.value = `${start} to ${end}`;
+          updateTitle(dateRangeInput.value);
           form.submit();
         }
       }
     });
 
-
+    // Модальное окно
     function showModal() {
       modal.classList.remove("opacity-0", "pointer-events-none");
-      modal.classList.add("bg-opacity-50");
+      modal.classList.add("opacity-100", "pointer-events-auto");
 
       setTimeout(() => {
         modalWindow.classList.remove("opacity-0", "scale-95");
@@ -183,9 +308,8 @@
       modalWindow.classList.add("opacity-0", "scale-95");
 
       setTimeout(() => {
-        modal.classList.add("opacity-0");
-        modal.classList.remove("bg-opacity-50");
-        modal.classList.add("pointer-events-none");
+        modal.classList.add("opacity-0", "pointer-events-none");
+        modal.classList.remove("opacity-100", "pointer-events-auto");
       }, 150);
     }
 
