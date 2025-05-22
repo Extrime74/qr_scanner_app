@@ -31,7 +31,7 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="flex justify-between items-center mb-8">
-    <h1 class="text-3xl font-bold text-gray-800" id="records-title">Список записей<%= title_suffix %></h1>
+    <h1 class="text-3xl font-bold text-gray-800" id="records-title">Сканирования<%= title_suffix %></h1>
     <%= link_to "Назад", root_path, class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm hover:shadow-md" %>
   </div>
 
@@ -93,7 +93,7 @@
               <th class="px-6 py-3">Артикул</th>
               <th class="px-6 py-3">Размер</th>
               <th class="px-6 py-3 text-center">Количество</th>
-              <th class="px-6 py-3 text-right">Действия</th>
+              <th class="px-6 py-3 text-right"></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
@@ -105,24 +105,24 @@
                 <% sizes.each_with_index do |entry, index| %>
                   <tr class="<%= index.even? ? 'bg-gray-50' : 'bg-white' %> hover:bg-gray-50 transition-colors">
                     <% if index == 0 %>
-                      <td class="px-6 py-4 align-top text-gray-700 font-medium text-center" rowspan="<%= sizes.size %>">
+                      <td class="px-6 py-2 align-top text-gray-700 font-medium text-center" rowspan="<%= sizes.size %>">
                         <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-50 text-blue-600">
                           <%= record.qr_code_id %>
                         </span>
                       </td>
-                      <td class="px-6 py-4 align-top text-gray-800 whitespace-pre-line" rowspan="<%= sizes.size %>"><%= parsed[:consignee] %></td>
-                      <td class="px-6 py-4 align-top text-gray-800 font-medium" rowspan="<%= sizes.size %>"><%= parsed[:apzgr] %></td>
-                      <td class="px-6 py-4 align-top text-gray-800" rowspan="<%= sizes.size %>">
+                      <td class="px-6 py-2 align-top text-gray-800 whitespace-pre-line" rowspan="<%= sizes.size %>"><%= parsed[:consignee] %></td>
+                      <td class="px-6 py-2 align-top text-gray-800 font-medium" rowspan="<%= sizes.size %>"><%= parsed[:apzgr] %></td>
+                      <td class="px-6 py-2 align-top text-gray-800" rowspan="<%= sizes.size %>">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           <%= parsed[:box_number] %>
                         </span>
                       </td>
-                      <td class="px-6 py-4 align-top text-gray-800 font-medium" rowspan="<%= sizes.size %>"><%= parsed[:article] %></td>
+                      <td class="px-6 py-2 align-top text-gray-800 font-medium" rowspan="<%= sizes.size %>"><%= parsed[:article] %></td>
                     <% end %>
-                    <td class="px-6 py-4 text-gray-700"><%= entry[:size] %></td>
-                    <td class="px-6 py-4 text-gray-700 text-center font-medium"><%= entry[:quantity] %></td>
+                    <td class="px-6 py-1 text-gray-700"><%= entry[:size] %></td>
+                    <td class="px-6 py-1 text-gray-700 text-center font-medium"><%= entry[:quantity] %></td>
                     <% if index == 0 %>
-                      <td class="px-6 py-4 text-right" rowspan="<%= sizes.size %>">
+                      <td class="px-6 py-2 text-left" rowspan="<%= sizes.size %>">
                         <button type="button"
                           data-record-id="<%= record.id %>"
                           class="open-delete-modal inline-flex items-center justify-center h-9 w-9 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition duration-200"
@@ -139,7 +139,7 @@
                 <% end %>
               <% else %>
                 <tr>
-                  <td colspan="8" class="px-6 py-4">
+                  <td colspan="8" class="px-6 py-2">
                     <div class="flex items-center gap-3 bg-red-50 rounded-lg p-3">
                       <div class="flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -218,7 +218,7 @@
     // Функция для обновления заголовка
     function updateTitle(dateRange) {
       if (!dateRange) {
-        recordsTitle.textContent = 'Список записей';
+        recordsTitle.textContent = 'Сканирования';
         return;
       }
 
@@ -241,13 +241,13 @@
       const yesterdayStr = formatDate(yesterday);
 
       if (dateRange === `${todayStr} to ${todayStr}`) {
-        recordsTitle.textContent = 'Список записей за Сегодня';
+        recordsTitle.textContent = 'Сканирования за Сегодня';
       } else if (dateRange === `${yesterdayStr} to ${yesterdayStr}`) {
-        recordsTitle.textContent = 'Список записей за Вчера';
+        recordsTitle.textContent = 'Сканирования за Вчера';
       } else if (startDateStr === endDateStr) {
-        recordsTitle.textContent = `Список записей за ${startFormatted}`;
+        recordsTitle.textContent = `ССканирования за ${startFormatted}`;
       } else {
-        recordsTitle.textContent = `Список записей за ${startFormatted} — ${endFormatted}`;
+        recordsTitle.textContent = `Сканирования за ${startFormatted} — ${endFormatted}`;
       }
     }
 

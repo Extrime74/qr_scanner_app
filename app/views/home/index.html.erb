@@ -1,13 +1,15 @@
-<div class="flex flex-col items-center mb-6 space-y-4">
-  <h1 class="text-2xl font-bold text-gray-800">Сканирование QR-кода</h1>
+<div class="max-w-4xl mx-auto px-6 py-10">
+  <div class="flex flex-col items-center mb-10 space-y-4">
+    <h1 class="text-3xl font-bold text-gray-800">Сканирование QR-кода</h1>
 
-  <%= link_to "Список записей", scan_records_path,
-        class: "inline-block bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300" %>
+    <%= link_to "Список записей", scan_records_path,
+          class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-5 rounded-lg shadow-sm hover:shadow-md transition duration-200" %>
+  </div>
+
+  <div id="reader" class="w-full max-w-md mx-auto rounded-2xl border border-gray-200 shadow-lg p-6 bg-white transition duration-500 ease-in-out"></div>
+
+  <div id="notification" class="mt-6 text-center font-semibold text-sm transition-opacity duration-500"></div>
 </div>
-
-<div id="reader" class="w-full max-w-md mx-auto rounded-2xl border border-gray-200 shadow-lg p-6 bg-white transition duration-500 ease-in-out"></div>
-
-<div id="notification" class="mt-4 text-center font-semibold text-sm transition-opacity duration-500"></div>
 
 <script>
   window.qrScanner = {
@@ -76,7 +78,7 @@
       const notif = document.getElementById('notification');
       if (notif) {
         notif.textContent = message;
-        notif.className = `mt-4 text-center font-semibold text-sm opacity-100 transition-opacity duration-500 ${
+        notif.className = `mt-6 text-center font-semibold text-sm opacity-100 transition-opacity duration-500 ${
           isError ? 'text-red-600' : 'text-green-600'
         }`;
         setTimeout(() => {
