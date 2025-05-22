@@ -51,20 +51,19 @@
           Вчера
         </button>
 
-        <div class="relative flex-grow max-w-xs">
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <div class="relative">
+          <button type="button" id="btn-date-range" class="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition duration-200 border border-gray-200">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-          </div>
+            Выбрать даты
+          </button>
           <input
             type="text"
             id="date-range"
             name="date_range"
-            placeholder="Выберите диапазон дат"
-            autocomplete="off"
-            class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition duration-200"
             value="<%= params[:date_range] %>"
+            style="opacity: 0; position: absolute; width: 1px; height: 1px; pointer-events: none;"
           />
         </div>
       </div>
@@ -85,7 +84,7 @@
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="bg-gray-50 text-gray-600 text-left text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
+            <tr class="bg-gray-200 text-gray-800 text-left text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
               <th class="px-6 py-3">ID</th>
               <th class="px-6 py-3">Грузополучатель</th>
               <th class="px-6 py-3">АПЗГР</th>
@@ -96,7 +95,7 @@
               <th class="px-6 py-3 text-right"></th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
+          <tbody class="divide-y divide-gray-200">
             <% @scan_records.each do |record| %>
               <% parsed = record.parsed_qr_data %>
               <% sizes = parsed[:sizes_with_quantities] || [] %>
@@ -119,9 +118,9 @@
                       </td>
                       <td class="px-6 py-2 align-top text-gray-800 font-medium" rowspan="<%= sizes.size %>"><%= parsed[:article] %></td>
                     <% end %>
-                    <td class="px-6 py-1 text-gray-700"><%= entry[:size] %></td>
-                    <td class="px-6 py-1 text-gray-700 text-center font-medium"><%= entry[:quantity] %></td>
+                    <td class="px-6 py-1 text-gray-700"><%= entry[:full_text] %></td>
                     <% if index == 0 %>
+                      <td class="px-6 py-1 text-gray-700 text-center font-medium" rowspan="<%= sizes.size %>"><%= parsed[:total_quantity] %></td>
                       <td class="px-6 py-2 text-left" rowspan="<%= sizes.size %>">
                         <button type="button"
                           data-record-id="<%= record.id %>"
@@ -194,6 +193,7 @@
 
     const btnToday = document.getElementById("btn-today");
     const btnYesterday = document.getElementById("btn-yesterday");
+    const btnDateRange = document.getElementById("btn-date-range");
     const dateRangeInput = document.getElementById("date-range");
     const form = document.getElementById("filter-form");
     const recordsTitle = document.getElementById("records-title");
@@ -245,7 +245,7 @@
       } else if (dateRange === `${yesterdayStr} to ${yesterdayStr}`) {
         recordsTitle.textContent = 'Сканирования за Вчера';
       } else if (startDateStr === endDateStr) {
-        recordsTitle.textContent = `ССканирования за ${startFormatted}`;
+        recordsTitle.textContent = `Сканирования за ${startFormatted}`;
       } else {
         recordsTitle.textContent = `Сканирования за ${startFormatted} — ${endFormatted}`;
       }
@@ -253,6 +253,13 @@
 
     // Инициализация при загрузке
     const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('date_range')) {
+      const today = new Date();
+      const todayStr = formatDate(today);
+      dateRangeInput.value = `${todayStr} to ${todayStr}`;
+      updateTitle(dateRangeInput.value);
+      form.submit();
+    }
     const initialDateRange = urlParams.get('date_range');
     updateTitle(initialDateRange);
 
@@ -274,8 +281,8 @@
       form.submit();
     });
 
-    // Инициализация flatpickr с выбором диапазона дат
-    flatpickr(dateRangeInput, {
+    // Инициализация flatpickr с выбором диапазона дат по кнопке
+    const datePicker = flatpickr("#date-range", {
       mode: "range",
       dateFormat: "Y-m-d",
       locale: "ru",
@@ -290,6 +297,11 @@
           form.submit();
         }
       }
+    });
+
+    // Открытие календаря по кнопке
+    btnDateRange?.addEventListener("click", () => {
+      datePicker.open();
     });
 
     // Модальное окно
