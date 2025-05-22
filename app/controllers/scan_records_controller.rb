@@ -5,7 +5,20 @@ class ScanRecordsController < ApplicationController
 
   # GET /scan_records or /scan_records.json
   def index
+    @start_date = params[:start_date]
+    @end_date = params[:end_date]
+
     @scan_records = ScanRecord.all
+
+    if @start_date.present? && @end_date.present?
+      begin
+        start_dt = Date.parse(@start_date).beginning_of_day
+        end_dt = Date.parse(@end_date).end_of_day
+        @scan_records = @scan_records.where(created_at: start_dt..end_dt)
+      rescue ArgumentError
+        flash.now[:alert] = "Неверный формат даты"
+      end
+    end
   end
 
   # GET /scan_records/1 or /scan_records/1.json

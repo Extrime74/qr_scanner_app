@@ -2,6 +2,29 @@
   <h1 class="text-2xl font-bold text-gray-800 mb-6">Список записей</h1>
 
   <%= link_to "Назад", root_path, class: "inline-block bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300 mb-6" %>
+  <%= form_with url: scan_records_path, method: :get, local: true, id: "filter-form" do |f| %>
+    <div class="flex space-x-4 mb-4">
+      <button type="button" id="btn-today" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300">
+        Сегодня
+      </button>
+      <button type="button" id="btn-yesterday" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300">
+        Вчера
+      </button>
+      <button type="button" id="btn-select-date" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-xl shadow transition duration-300">
+        Выбор даты
+      </button>
+    </div>
+
+    <div id="date-picker-container" class="hidden space-x-4 mb-4">
+      <%= label_tag :start_date, "Дата с" %>
+      <%= date_field_tag :start_date, @start_date, class: "border rounded px-2 py-1" %>
+
+      <%= label_tag :end_date, "Дата по" %>
+      <%= date_field_tag :end_date, @end_date, class: "border rounded px-2 py-1" %>
+
+      <%= submit_tag "Фильтровать", class: "bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300" %>
+    </div>
+  <% end %>
 
   <!-- Таблица -->
   <div class="bg-white shadow-lg rounded-2xl border border-gray-200 overflow-hidden">
@@ -90,21 +113,54 @@
     const modalWindow = document.getElementById("modal-window");
     const confirmBtn = document.getElementById("modal-confirm");
     const cancelBtn = document.getElementById("modal-cancel");
+    const btnToday = document.getElementById("btn-today");
+    const btnYesterday = document.getElementById("btn-yesterday");
+    const datePickerContainer = document.getElementById("date-picker-container");
+    const form = document.getElementById("filter-form");
+    const startDateInput = document.querySelector("input[name='start_date']");
+    const endDateInput = document.querySelector("input[name='end_date']");
 
-    // Если элементов нет на странице — выходим
     if (!modal || !modalWindow || !confirmBtn || !cancelBtn) return;
 
     let activeRecordId = null;
 
-    function showModal() {
-      // Убираем классы, скрывающие модалку
-      modal.classList.remove("opacity-0");
-      modal.classList.remove("pointer-events-none");
+    function formatDate(date) {
+      return date.toISOString().slice(0, 10);
+    }
 
-      // Добавляем затемнение фона
+    btnToday?.addEventListener("click", () => {
+      const today = new Date();
+      startDateInput.value = formatDate(today);
+      endDateInput.value = formatDate(today);
+      form.submit();
+    });
+
+    btnYesterday?.addEventListener("click", () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      startDateInput.value = formatDate(yesterday);
+      endDateInput.value = formatDate(yesterday);
+      form.submit();
+    });
+
+    // Обработка кнопки "Выбор даты" с заменой для сброса обработчиков
+    const btnSelectDateOld = document.getElementById("btn-select-date");
+    if (btnSelectDateOld && datePickerContainer && startDateInput) {
+      const btnSelectDateNew = btnSelectDateOld.cloneNode(true);
+      btnSelectDateOld.replaceWith(btnSelectDateNew);
+
+      btnSelectDateNew.addEventListener("click", () => {
+        datePickerContainer.classList.toggle("hidden");
+        if (!datePickerContainer.classList.contains("hidden")) {
+          startDateInput.focus();
+        }
+      });
+    }
+
+    function showModal() {
+      modal.classList.remove("opacity-0", "pointer-events-none");
       modal.classList.add("bg-opacity-50");
 
-      // Показываем модальное окно
       setTimeout(() => {
         modalWindow.classList.remove("opacity-0", "scale-95");
         modalWindow.classList.add("opacity-100", "scale-100");
@@ -112,11 +168,9 @@
     }
 
     function hideModal() {
-      // Скрываем модальное окно
       modalWindow.classList.remove("opacity-100", "scale-100");
       modalWindow.classList.add("opacity-0", "scale-95");
 
-      // После анимации скрываем фон
       setTimeout(() => {
         modal.classList.add("opacity-0");
         modal.classList.remove("bg-opacity-50");
@@ -134,8 +188,8 @@
     cancelBtn.addEventListener("click", hideModal);
     confirmBtn.addEventListener("click", () => {
       if (activeRecordId) {
-        const form = document.getElementById(`delete-form-${activeRecordId}`);
-        if (form) form.submit();
+        const deleteForm = document.getElementById(`delete-form-${activeRecordId}`);
+        if (deleteForm) deleteForm.submit();
         hideModal();
       }
     });
@@ -147,6 +201,7 @@
     });
   });
 </script>
+
 
 
 <style>
