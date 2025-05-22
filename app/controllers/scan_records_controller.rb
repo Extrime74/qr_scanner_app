@@ -5,21 +5,14 @@ class ScanRecordsController < ApplicationController
 
   # GET /scan_records or /scan_records.json
   def index
-    @start_date = params[:start_date]
-    @end_date = params[:end_date]
-
-    @scan_records = ScanRecord.all
-
-    if @start_date.present? && @end_date.present?
-      begin
-        start_dt = Date.parse(@start_date).beginning_of_day
-        end_dt = Date.parse(@end_date).end_of_day
-        @scan_records = @scan_records.where(created_at: start_dt..end_dt)
-      rescue ArgumentError
-        flash.now[:alert] = "Неверный формат даты"
-      end
+    if params[:date_range].present?
+      start_date, end_date = parse_date_range(params[:date_range])
+      @scan_records = ScanRecord.where(created_at: start_date.beginning_of_day..end_date.end_of_day)
+    else
+      @scan_records = ScanRecord.all
     end
   end
+
 
   # GET /scan_records/1 or /scan_records/1.json
   def show
@@ -119,6 +112,17 @@ class ScanRecordsController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_scan_record
       @scan_record = ScanRecord.find(params[:id])
+    end
+
+    def parse_date_range(range_str)
+      normalized = range_str.strip
+                             .gsub(/\u2014|\u2013| - | — | – | - /, " to ")
+                             .gsub(/\s+to\s+/, " to ")
+
+      dates = normalized.split(" to ").map { |date| Date.parse(date.strip) }
+      [ dates[0], dates[1] || dates[0] ]
+    rescue ArgumentError
+      [ Date.today, Date.today ]
     end
 
     def scan_record_params

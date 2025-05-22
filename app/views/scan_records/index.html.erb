@@ -1,28 +1,30 @@
+<!-- Подключаем flatpickr и русскую локаль -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <h1 class="text-2xl font-bold text-gray-800 mb-6">Список записей</h1>
 
   <%= link_to "Назад", root_path, class: "inline-block bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300 mb-6" %>
+
   <%= form_with url: scan_records_path, method: :get, local: true, id: "filter-form" do |f| %>
-    <div class="flex space-x-4 mb-4">
+    <div class="flex space-x-4 mb-4 items-center">
       <button type="button" id="btn-today" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300">
         Сегодня
       </button>
       <button type="button" id="btn-yesterday" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300">
         Вчера
       </button>
-      <button type="button" id="btn-select-date" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-xl shadow transition duration-300">
-        Выбор даты
-      </button>
-    </div>
 
-    <div id="date-picker-container" class="hidden space-x-4 mb-4">
-      <%= label_tag :start_date, "Дата с" %>
-      <%= date_field_tag :start_date, @start_date, class: "border rounded px-2 py-1" %>
-
-      <%= label_tag :end_date, "Дата по" %>
-      <%= date_field_tag :end_date, @end_date, class: "border rounded px-2 py-1" %>
-
-      <%= submit_tag "Фильтровать", class: "bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-xl shadow transition duration-300" %>
+      <input
+        type="text"
+        id="date-range"
+        name="date_range"
+        placeholder="Выберите дату"
+        autocomplete="off"
+        class="border rounded px-3 py-2 cursor-pointer max-w-[200px]"
+      />
     </div>
   <% end %>
 
@@ -113,12 +115,11 @@
     const modalWindow = document.getElementById("modal-window");
     const confirmBtn = document.getElementById("modal-confirm");
     const cancelBtn = document.getElementById("modal-cancel");
+
     const btnToday = document.getElementById("btn-today");
     const btnYesterday = document.getElementById("btn-yesterday");
-    const datePickerContainer = document.getElementById("date-picker-container");
+    const dateRangeInput = document.getElementById("date-range");
     const form = document.getElementById("filter-form");
-    const startDateInput = document.querySelector("input[name='start_date']");
-    const endDateInput = document.querySelector("input[name='end_date']");
 
     if (!modal || !modalWindow || !confirmBtn || !cancelBtn) return;
 
@@ -130,32 +131,42 @@
 
     btnToday?.addEventListener("click", () => {
       const today = new Date();
-      startDateInput.value = formatDate(today);
-      endDateInput.value = formatDate(today);
+      // Устанавливаем одинаковую дату начала и конца, т.к. диапазон
+      dateRangeInput.value = formatDate(today) + " to " + formatDate(today);
       form.submit();
     });
 
     btnYesterday?.addEventListener("click", () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      startDateInput.value = formatDate(yesterday);
-      endDateInput.value = formatDate(yesterday);
+      dateRangeInput.value = formatDate(yesterday) + " to " + formatDate(yesterday);
       form.submit();
     });
 
-    // Обработка кнопки "Выбор даты" с заменой для сброса обработчиков
-    const btnSelectDateOld = document.getElementById("btn-select-date");
-    if (btnSelectDateOld && datePickerContainer && startDateInput) {
-      const btnSelectDateNew = btnSelectDateOld.cloneNode(true);
-      btnSelectDateOld.replaceWith(btnSelectDateNew);
-
-      btnSelectDateNew.addEventListener("click", () => {
-        datePickerContainer.classList.toggle("hidden");
-        if (!datePickerContainer.classList.contains("hidden")) {
-          startDateInput.focus();
-        }
-      });
+    function formatDateLocal(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0'); // месяцы от 0
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
     }
+
+
+    // Инициализация flatpickr с выбором диапазона дат
+    flatpickr(dateRangeInput, {
+      mode: "range",
+      dateFormat: "Y-m-d",
+      locale: "ru",
+      allowInput: true,
+      onClose: function(selectedDates) {
+        if (selectedDates.length > 0) {
+          const start = formatDateLocal(selectedDates[0]);
+          const end = selectedDates[1] ? formatDateLocal(selectedDates[1]) : start;
+          dateRangeInput.value = `${start} to ${end}`;
+          form.submit();
+        }
+      }
+    });
+
 
     function showModal() {
       modal.classList.remove("opacity-0", "pointer-events-none");
@@ -186,6 +197,7 @@
     });
 
     cancelBtn.addEventListener("click", hideModal);
+
     confirmBtn.addEventListener("click", () => {
       if (activeRecordId) {
         const deleteForm = document.getElementById(`delete-form-${activeRecordId}`);
@@ -202,10 +214,7 @@
   });
 </script>
 
-
-
 <style>
-  /* Удаляем все !important и ненужные переопределения */
   #modal-overlay {
     background-color: rgba(0, 0, 0, 0.5);
   }
