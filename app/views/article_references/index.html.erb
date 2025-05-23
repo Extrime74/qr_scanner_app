@@ -3,7 +3,8 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold text-gray-800">Справочник артикулов</h1>
-    <%= link_to "Назад", root_path, class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm hover:shadow-md" %>
+    <%= link_to "Список сканирований", scan_records_path, class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm hover:shadow-md" %>
+
   </div>
 
   <% if notice.present? %>
@@ -15,18 +16,23 @@
     </div>
   <% end %>
 
-  <div class="bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden mb-6">
-    <div class="p-4 border-b border-gray-100 flex justify-between items-center">
-      <h2 class="text-lg font-semibold text-gray-800">Список артикулов</h2>
-      <%= link_to new_article_reference_path, class: "inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm hover:shadow-md" do %>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-        Добавить артикул
-      <% end %>
+  <%= form_with url: scan_records_path, method: :get, local: true, id: "filter-form" do |f| %>
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
+      <div class="flex flex-wrap items-center justify-between">
+        <div class="text-gray-700 text-base font-medium">
+          Всего записей: <%= @record_count %>
+        </div>
+        <%= link_to new_article_reference_path, class: "inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm hover:shadow-md" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Добавить артикул
+        <% end %>
+      </div>
     </div>
+  <% end %>
 
-    <div id="article_references">
+    <div class="bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden">
       <% if @article_references.empty? %>
         <div class="p-8 text-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -40,14 +46,14 @@
           <table class="w-full text-sm">
             <thead>
               <tr class="bg-gray-200 text-gray-800 text-left text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
-                <th class="px-6 py-3">Артикул</th>
+                <th class="px-6 py-3 w-32">Артикул</th>
                 <th class="px-6 py-3">Наименование</th>
-                <th class="px-6 py-3 text-right">Действия</th>
+                <th class="px-6 py-3 text-right"></th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
               <% @article_references.each do |article_reference| %>
-                <tr class="hover:bg-gray-50 transition-colors">
+                <tr class="<%= cycle('bg-gray-50', 'bg-white') %> hover:bg-gray-50 transition-colors">
                   <td class="px-6 py-4 font-medium text-gray-800">
                     <%= article_reference.article %>
                   </td>
@@ -56,7 +62,6 @@
                   </td>
                   <td class="px-6 py-4 text-right">
                     <div class="flex justify-end gap-2">
-
                       <button type="button"
                         data-article-id="<%= article_reference.id %>"
                         data-article="<%= article_reference.article %>"
@@ -147,8 +152,12 @@
       setTimeout(() => {
         editModal.classList.add("opacity-0", "pointer-events-none");
         editModal.classList.remove("opacity-100", "pointer-events-auto");
+
+        // Обновляем страницу после закрытия модального окна
+        location.reload();
       }, 150);
     }
+
 
     // Обработчик открытия модального окна
     document.querySelectorAll(".open-edit-modal").forEach(button => {

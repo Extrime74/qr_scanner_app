@@ -3,6 +3,7 @@ class ArticleReferencesController < ApplicationController
 
   # GET /article_references or /article_references.json
   def index
+    @record_count = ArticleReference.count
     @article_references = ArticleReference.all
   end
 
