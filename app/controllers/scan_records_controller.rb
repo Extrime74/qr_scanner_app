@@ -5,6 +5,7 @@ class ScanRecordsController < ApplicationController
 
   # GET /scan_records or /scan_records.json
   def index
+    @article_names = ArticleReference.pluck(:article, :name).to_h
     if params[:date_range].present?
       start_date, end_date = parse_date_range(params[:date_range])
       @scan_records = ScanRecord.where(created_at: start_date.beginning_of_day..end_date.end_of_day)
