@@ -32,7 +32,7 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold text-gray-800" id="records-title">Сканирования<%= title_suffix %></h1>
-    <%= link_to "Назад", root_path, class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm hover:shadow-md" %>
+    <%= link_to "Сканировать", root_path, class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm hover:shadow-md" %>
   </div>
 
   <%= form_with url: scan_records_path, method: :get, local: true, id: "filter-form" do |f| %>
@@ -184,7 +184,7 @@
       </div>
       <h2 class="text-xl font-semibold text-gray-800">Подтвердите удаление</h2>
     </div>
-    <p class="text-gray-600 mb-6 pl-11">Вы уверены, что хотите удалить эту запись? Это действие нельзя отменить.</p>
+    <p class="text-gray-600 mb-6 pl-11">Удалить эту запись?</p>
     <div class="flex justify-end gap-3">
       <button id="modal-cancel" class="px-4 py-2 text-gray-700 font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition">Отмена</button>
       <button id="modal-confirm" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition flex items-center gap-2">

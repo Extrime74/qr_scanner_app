@@ -26,7 +26,7 @@ class ArticleReferencesController < ApplicationController
 
     respond_to do |format|
       if @article_reference.save
-        format.html { redirect_to @article_reference, notice: "Article reference was successfully created." }
+        format.html { redirect_to article_references_path }
         format.json { render :show, status: :created, location: @article_reference }
       else
         format.html { render :new, status: :unprocessable_entity }
