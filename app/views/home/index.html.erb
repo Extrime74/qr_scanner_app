@@ -1,15 +1,19 @@
-<div class="max-w-4xl mx-auto px-6 py-10">
+ <div class="max-w-4xl mx-auto px-6 py-10">
   <div class="flex flex-col items-center mb-10 space-y-4">
     <h1 class="text-3xl font-bold text-gray-800">Сканируйте QR-код</h1>
 
+    <div id="reader" class="w-full max-w-md mx-auto rounded-2xl border border-gray-200 shadow-lg p-6 bg-white transition duration-500 ease-in-out"></div>
 
+    <%= link_to "Список записей", scan_records_path,
+      class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-5 rounded-lg shadow-sm hover:shadow-md transition duration-200" %>
 
-
-  <div id="reader" class="w-full max-w-md mx-auto rounded-2xl border border-gray-200 shadow-lg p-6 bg-white transition duration-500 ease-in-out"></div>
-<%= link_to "Список записей", scan_records_path,
-          class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-5 rounded-lg shadow-sm hover:shadow-md transition duration-200" %>
-  <div id="notification" class="mt-6 text-center font-semibold text-sm transition-opacity duration-500"></div>
+    <div id="notification" class="mt-6 text-center font-semibold text-sm transition-opacity duration-500"></div>
+  </div>
 </div>
+
+<!-- 🎵 Аудиоэлементы -->
+<audio id="success-audio" src="/sounds/success.mp3" preload="auto"></audio>
+<audio id="error-audio" src="/sounds/error.mp3" preload="auto"></audio>
 
 <script>
   window.qrScanner = {
@@ -67,15 +71,32 @@
       })
       .then(response => response.json().then(data => ({ status: response.status, body: data })))
       .then(({ status, body }) => {
+        let timestamp = '';
+        if (body.created_at) {
+          const date = new Date(body.created_at);
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          timestamp = ` (повтор от ${day}.${month}.${year})`;
+        }
+
+      let statusText = body.message + timestamp;
+      let message = `ID QR кода: ${body.id || '–'}\nТекст QR кода: ${body.qr_code_text || '–'}\n\nСтатус: ${statusText}`;
+
+
         if (status === 201) {
-          this.showNotification(body.message);
+          this.playSound(true); // ✅ Успех
+          this.showNotification(message);
         } else if (status === 409) {
-          this.showNotification(body.message, true);
+          this.playSound(false); // ❌ Повтор
+          this.showNotification(message, true);
         } else {
+          this.playSound(false); // ❌ Ошибка
           this.showNotification("Ошибка: " + (body.message || body.errors), true);
         }
       })
       .catch(() => {
+        this.playSound(false); // ❌ Сеть
         this.showNotification("Ошибка сети", true);
       });
     },
@@ -90,6 +111,16 @@
         setTimeout(() => {
           notif.classList.add('opacity-0');
         }, 4000);
+      }
+    },
+
+    playSound: function(isSuccess) {
+      const audio = document.getElementById(isSuccess ? 'success-audio' : 'error-audio');
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch((err) => {
+          console.warn("Audio playback failed:", err);
+        });
       }
     },
 

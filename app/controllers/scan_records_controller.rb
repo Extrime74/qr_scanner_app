@@ -44,8 +44,15 @@ class ScanRecordsController < ApplicationController
       qr_code_id = parts[0]
       qr_code_text = qr_string
 
-      if ScanRecord.exists?(qr_code_id: qr_code_id)
-        render json: { message: "QR-код был считан ранее." }, status: :conflict
+      existing_record = ScanRecord.find_by(qr_code_id: qr_code_id)
+
+      if existing_record
+        render json: {
+          message: "Был считан ранее.",
+          id: existing_record.id,
+          created_at: existing_record.created_at,
+          qr_code_text: existing_record.qr_code_text
+        }, status: :conflict
         return
       end
 
@@ -53,7 +60,11 @@ class ScanRecordsController < ApplicationController
       Rails.logger.info "Saving ScanRecord: #{scan_record.inspect}"
 
       if scan_record.save
-        render json: { message: "QR-код считан." }, status: :created
+        render json: {
+          message: "QR-код считан.",
+          id: scan_record.id,
+          qr_code_text: scan_record.qr_code_text
+        }, status: :created
       else
         Rails.logger.error "Errors saving ScanRecord: #{scan_record.errors.full_messages}"
         render json: { errors: scan_record.errors.full_messages }, status: :unprocessable_entity
