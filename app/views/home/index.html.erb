@@ -1,13 +1,13 @@
 <div class="max-w-4xl mx-auto px-6 py-10">
   <div class="flex flex-col items-center mb-10 space-y-4">
-    <h1 class="text-3xl font-bold text-gray-800">Сканирование QR-кода</h1>
+    <h1 class="text-3xl font-bold text-gray-800">Сканируйте QR-код</h1>
 
-    <%= link_to "Список записей", scan_records_path,
-          class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-5 rounded-lg shadow-sm hover:shadow-md transition duration-200" %>
-  </div>
+
+
 
   <div id="reader" class="w-full max-w-md mx-auto rounded-2xl border border-gray-200 shadow-lg p-6 bg-white transition duration-500 ease-in-out"></div>
-
+<%= link_to "Список записей", scan_records_path,
+          class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-5 rounded-lg shadow-sm hover:shadow-md transition duration-200" %>
   <div id="notification" class="mt-6 text-center font-semibold text-sm transition-opacity duration-500"></div>
 </div>
 
@@ -32,6 +32,12 @@
           {
             fps: 1,
             rememberLastUsedCamera: true,
+            aspectRatio: 1,
+            qrbox: (videoWidth, videoHeight) => {
+              const width = videoWidth * 0.7;
+              const height = videoHeight * 0.7;
+              return { width, height };
+            },
             supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
           },
           false
