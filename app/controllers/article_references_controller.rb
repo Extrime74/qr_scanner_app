@@ -38,14 +38,18 @@ class ArticleReferencesController < ApplicationController
   def update
     respond_to do |format|
       if @article_reference.update(article_reference_params)
+        format.turbo_stream
         format.html { redirect_to @article_reference, notice: "Article reference was successfully updated." }
         format.json { render :show, status: :ok, location: @article_reference }
       else
+        format.turbo_stream { render turbo_stream: turbo_stream.replace(@article_reference, partial: "article_references/form", locals: { article_reference: @article_reference }) }
         format.html { render :edit, status: :unprocessable_entity }
         format.json { render json: @article_reference.errors, status: :unprocessable_entity }
       end
     end
   end
+
+
 
   # DELETE /article_references/1 or /article_references/1.json
   def destroy
@@ -57,14 +61,14 @@ class ArticleReferencesController < ApplicationController
     end
   end
 
-  private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_article_reference
-      @article_reference = ArticleReference.find(params.expect(:id))
-    end
 
-    # Only allow a list of trusted parameters through.
-    def article_reference_params
-      params.expect(article_reference: [ :article, :name ])
-    end
+  private
+
+  def set_article_reference
+    @article_reference = ArticleReference.find(params[:id])
+  end
+
+  def article_reference_params
+    params.require(:article_reference).permit(:article, :name)
+  end
 end
