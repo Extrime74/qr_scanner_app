@@ -27,10 +27,16 @@ class ArticleReferencesController < ApplicationController
     respond_to do |format|
       if @article_reference.save
         format.html { redirect_to article_references_path }
-        format.json { render :show, status: :created, location: @article_reference }
+        format.json { render json: { redirect_url: article_references_path }, status: :created }
       else
         format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @article_reference.errors, status: :unprocessable_entity }
+        format.json {
+          render json: {
+            errors: @article_reference.errors.messages.transform_values { |v| v.is_a?(Array) ? v.map { |m| m.sub(/^Article /i, "") } : v.to_s.sub(/^Article /i, "") },
+            error_fields: @article_reference.errors.attribute_names.map(&:to_s)
+          },
+          status: :unprocessable_entity
+        }
       end
     end
   end

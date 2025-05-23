@@ -1,4 +1,8 @@
 class ArticleReference < ApplicationRecord
-  validates :article, presence: true, uniqueness: true
-  validates :name, presence: true
+  validates :article,
+    uniqueness: { message: "Этот артикул уже занят" },
+    presence: { message: "Укажите артикул" }
+
+  validates :name,
+    presence: { message: "Укажите наименование" }
 end
