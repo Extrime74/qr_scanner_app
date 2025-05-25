@@ -30,51 +30,63 @@
 %>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div class="flex justify-between items-center mb-8">
-    <h1 class="text-3xl font-bold text-gray-800" id="records-title">Сканирования<%= title_suffix %></h1>
-    <%= link_to "Сканировать", root_path, class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm hover:shadow-md" %>
-  </div>
+<div class="flex justify-between items-center mb-8">
+  <h1 class="text-3xl font-bold text-gray-800" id="records-title">Сканирования<%= title_suffix %></h1>
+  <%= link_to "Сканировать", root_path, class: "inline-flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm hover:shadow-md" %>
+</div>
 
-  <%= form_with url: scan_records_path, method: :get, local: true, id: "filter-form" do |f| %>
-    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
-      <div class="flex flex-wrap gap-3 items-center justify-between">
-        <div class="flex flex-wrap gap-3 items-center">
-          <button type="button" id="btn-today" class="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-4 rounded-lg transition duration-200 border border-blue-100">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Сегодня
-          </button>
-          <button type="button" id="btn-yesterday" class="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-600 font-medium py-2 px-4 rounded-lg transition duration-200 border border-gray-100">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Вчера
-          </button>
-
-          <div class="relative">
-            <button type="button" id="btn-date-range" class="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition duration-200 border border-gray-200">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Выбрать даты
-            </button>
-            <input
-              type="text"
-              id="date-range"
-              name="date_range"
-              value="<%= params[:date_range] %>"
-              style="opacity: 0; position: absolute; width: 1px; height: 1px; pointer-events: none;"
-            />
+<%= form_with url: scan_records_path, method: :get, local: true, id: "filter-form" do |f| %>
+  <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
+    <div class="flex flex-wrap gap-3 items-center justify-between">
+      <div class="flex items-center">
+        <div class="flex items-center bg-gray-50 rounded-lg px-4 py-2.5 border border-gray-100">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <div class="flex items-baseline">
+            <span class="text-gray-600 mr-2">Найдено:</span>
+            <span class=" text-gray-800 mr-3"><%= @scan_records.size %></span>
           </div>
         </div>
+      </div>
 
-        <%= link_to article_references_path, class: "flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition duration-200 border border-gray-200" do %>
+      <div class="flex flex-wrap gap-2 items-center">
+        <button type="button" id="btn-today" class="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-4 rounded-lg transition duration-200 border border-blue-100 shadow-sm">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          Список артикулов
-        <% end %>
+          Сегодня
+        </button>
+        <button type="button" id="btn-yesterday" class="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-600 font-medium py-2 px-4 rounded-lg transition duration-200 border border-gray-100 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Вчера
+        </button>
+
+        <div class="relative">
+          <button type="button" id="btn-date-range" class="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition duration-200 border border-gray-200 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Выбрать даты
+          </button>
+          <input
+            type="text"
+            id="date-range"
+            name="date_range"
+            value="<%= params[:date_range] %>"
+            style="opacity: 0; position: absolute; width: 1px; height: 1px; pointer-events: none;"
+          />
+        </div>
+
+          <%= link_to article_references_path, class: "flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition duration-200 border border-gray-200 shadow-sm" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Справочник артикулов
+          <% end %>
+        </div>
       </div>
     </div>
   <% end %>

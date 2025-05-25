@@ -12,6 +12,7 @@ class ScanRecordsController < ApplicationController
     else
       @scan_records = ScanRecord.all
     end
+    @scan_record_count = @scan_records.count # Добавьте эту строку
   end
 
 
